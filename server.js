@@ -1,5 +1,6 @@
 var http = require('http');
 
+// cloud9 settings 
 var port = process.env.PORT;
 
 if (port === undefined) {
@@ -9,12 +10,13 @@ if (port === undefined) {
 http.createServer(function (req, res) {
   res.writeHead(200, {'Content-Type': 'text/plain'});
   
-  var response = 'Hello Node Ninja\n' + 'yes! its a test!!' + '<br>' 
-    + '<ui>'
-    + '<li>cloud9 support'
-    + '<li>auto sync ' 
-    + '<li> set a webhooks'
-    + '</ui>';
+  var response = 'Hello Node Ninja\n' 
+  　+ 'yes! its a test!!' + '\n' 
+    + '' + '\n'
+    + '-cloud9 support' + '\n'
+    + '-auto sync ' + '\n'
+    + '- set a webhooks' + '\n'
+    + '日本語テスト';
   
   res.end(response);
 }).listen(port);
