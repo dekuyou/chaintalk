@@ -9,7 +9,11 @@ if (port === undefined) {
 http.createServer(function (req, res) {
   res.writeHead(200, {'Content-Type': 'text/plain'});
   
-  var response = 'Hello Node Ninja\n' + 'yes! its a test!!';
+  var response = 'Hello Node Ninja\n' + 'yes! its a test!!' + '<br>' 
+    + '<ui>'
+    + '<li>cloud9 support'
+    + '<li>auto sync ' 
+    + '</ui>';
   
   res.end(response);
 }).listen(port);
