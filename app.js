@@ -3,7 +3,7 @@
  * Module dependencies.
  */
 
-var express = require('express');
+var express = require('./node_modules/express');
 var routes = require('./routes');
 var user = require('./routes/user');
 var http = require('http');
