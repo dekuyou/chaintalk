@@ -13,6 +13,7 @@ http.createServer(function (req, res) {
     + '<ui>'
     + '<li>cloud9 support'
     + '<li>auto sync ' 
+    + '<li> set a webhooks'
     + '</ui>';
   
   res.end(response);
