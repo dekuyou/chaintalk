@@ -3,11 +3,13 @@
  * Module dependencies.
  */
 
-var express = require('express');
-var routes = require('./routes');
-var user = require('./routes/user');
-var http = require('http');
-var path = require('path');
+var express     = require('express');
+var routes      = require('./routes');
+var user        = require('./routes/user');
+var http        = require('http');
+var path        = require('path');
+var sio         = require('socket.io');
+var mongoose    = require('mongoose');
 
 var app = express();
 
@@ -31,6 +33,59 @@ if ('development' == app.get('env')) {
 app.get('/', routes.index);
 app.get('/users', user.list);
 
-http.createServer(app).listen(app.get('port'), function(){
+var server = http.createServer(app);
+server.listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
+
+// ----------------------------------------------------------------------------
+//mongoose
+
+var Schema = mongoose.Schema;
+var UserSchema = new Schema({
+  message: String,
+  date: Date
+});
+mongoose.model('User', UserSchema);
+mongoose.connect('mongodb://'+ (process.env.IP || 'localhost') +'/chat_app');
+var User = mongoose.model('User');
+
+// ----------------------------------------------------------------------------
+//socket
+var io = sio.listen(server);
+
+io.sockets.on('connection', function (socket) {
+  socket.on('message:update', function(){
+    //接続したらDBのメッセージを表示
+    User.find(function(err, docs){
+      socket.emit('message:open', docs);
+    });
+  });
+
+  console.log('connected');
+
+  socket.on('message:send', function (msg) {
+    socket.emit('message:receive', msg);
+    socket.broadcast.emit('message:receive', msg);
+    //DBに登録
+    var user = new User();
+    user.message  = msg.message;
+    user.date = new Date();
+    user.save(function(err) {
+      if (err) { console.log(err); }
+    });
+  });
+
+  //DBにあるメッセージを削除
+  socket.on('deleteDB', function(){
+    socket.emit('db drop');
+    socket.broadcast.emit('db drop');
+    User.find().remove();
+  });
+
+  socket.on('disconnect', function() {
+    console.log('disconnected');
+  });
+
+});
+
