@@ -77,10 +77,12 @@ io.sockets.on('connection', function (socket) {
   });
 
   //DBにあるメッセージを削除
-  socket.on('deleteDB', function(){
-    socket.emit('db drop');
-    socket.broadcast.emit('db drop');
-    User.find().remove();
+  socket.on('message:delete', function(){
+    socket.emit('message:deleted');
+    socket.broadcast.emit('message:deleted');
+    User.remove(function(err) {
+      if (err) { console.log(err); }
+    });
   });
 
   socket.on('disconnect', function() {

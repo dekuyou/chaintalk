@@ -19,9 +19,22 @@ socket.on('message:open', function(msg){
 socket.on('message:receive', function (data) {
   $("div#chat-area").prepend("<div>" + data.message + "</div>");
 });
+
  
 function send() {
   var msg = $("input#message").val();
   $("input#message").val("");
   socket.emit('message:send', { message: msg });
+}
+
+
+
+socket.on('message:deleted', function(){
+    $('div#chat-area').empty();
+});
+
+
+function deleteMsgs() {
+  socket.emit('message:delete');
+    
 }
