@@ -10,6 +10,7 @@ var http        = require('http');
 var path        = require('path');
 var sio         = require('socket.io');
 var mongoose    = require('mongoose');
+var db          = require('./db/scheme');
 
 var app = express();
 
@@ -40,15 +41,20 @@ server.listen(app.get('port'), function(){
 
 // ----------------------------------------------------------------------------
 //mongoose
-
+/*
 var Schema = mongoose.Schema;
-var UserSchema = new Schema({
+var ChatTestSchema = new Schema({
   message: String,
   date: Date
 });
-mongoose.model('User', UserSchema);
+mongoose.model('ChatTest', ChatTestSchema);
 mongoose.connect('mongodb://'+ (process.env.IP || 'localhost') +'/chat_app');
-var User = mongoose.model('User');
+
+var ChatTest = mongoose.model('ChatTest');
+*/
+db.init();
+var ChatTest = db.mongoose.model('ChatTest');
+
 
 // ----------------------------------------------------------------------------
 //socket
@@ -57,7 +63,7 @@ var io = sio.listen(server);
 io.sockets.on('connection', function (socket) {
   socket.on('message:update', function(){
     //接続したらDBのメッセージを表示
-    User.find(function(err, docs){
+    ChatTest.find(function(err, docs){
       socket.emit('message:open', docs);
     });
   });
@@ -68,10 +74,10 @@ io.sockets.on('connection', function (socket) {
     socket.emit('message:receive', msg);
     socket.broadcast.emit('message:receive', msg);
     //DBに登録
-    var user = new User();
-    user.message  = msg.message;
-    user.date = new Date();
-    user.save(function(err) {
+    var chatTest = new ChatTest();
+    chatTest.message  = msg.message;
+    chatTest.date = new Date();
+    chatTest.save(function(err) {
       if (err) { console.log(err); }
     });
   });
@@ -80,7 +86,7 @@ io.sockets.on('connection', function (socket) {
   socket.on('message:delete', function(){
     socket.emit('message:deleted');
     socket.broadcast.emit('message:deleted');
-    User.remove(function(err) {
+    ChatTest.remove(function(err) {
       if (err) { console.log(err); }
     });
   });
