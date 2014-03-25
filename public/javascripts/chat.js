@@ -9,7 +9,7 @@ socket.on('message:open', function(msg){
     if(msg.length === 0){
         return;
     } else {
-        $('#list').empty();
+        $("div#chat-area").empty();
         $.each(msg, function(key, value){
             var msgObj = $("<div/>").text(value.message);
             $("div#chat-area").prepend(msgObj);
