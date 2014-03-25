@@ -5,7 +5,7 @@ chaintalk
 ### server 
 > http://node-ninja.com/
 
-### develop
+### development environment
 > https://c9.io/
 
 ### node.js
