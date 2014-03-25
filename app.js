@@ -9,8 +9,11 @@ var user        = require('./routes/user');
 var http        = require('http');
 var path        = require('path');
 var sio         = require('socket.io');
-var mongoose    = require('mongoose');
+var MongoStore  = require('connect-mongo')(express);
+
 var db          = require('./db/scheme');
+var certify     = require('./routes/certify');
+
 
 var app = express();
 
@@ -22,7 +25,21 @@ app.use(express.favicon());
 app.use(express.logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded());
+app.use(express.bodyParser());
 app.use(express.methodOverride());
+app.use(express.cookieParser()); //追加
+app.use(express.session({
+    secret: 'secret',
+    store: new MongoStore({
+        db: 'session',
+        host: 'localhost',
+        clear_interval: 30 * 60
+    }),
+    cookie: {
+        httpOnly: false,
+        maxAge: new Date(Date.now() + 30 * 60 * 1000)
+    }
+}));
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -31,8 +48,30 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
+
+var loginCheck = function(req, res, next) {
+    if(req.session.key){
+      next();
+    }else{
+      res.redirect('/');
+    }
+};
+
+// routing --------
+
+
 app.get('/', routes.index);
 app.get('/users', user.list);
+
+// -----------------------------------------------------------------------------
+app.get('/certify/debug/:id/:sns_type/:token/:pub_key', certify.index);
+app.post('/certify/index', certify.index);
+app.post('/certify/auth', loginCheck, certify.auth);
+
+
+
+// -----------------------------------------------------------------------------
+
 
 var server = http.createServer(app);
 server.listen(app.get('port'), function(){
@@ -41,19 +80,8 @@ server.listen(app.get('port'), function(){
 
 // ----------------------------------------------------------------------------
 //mongoose
-/*
-var Schema = mongoose.Schema;
-var ChatTestSchema = new Schema({
-  message: String,
-  date: Date
-});
-mongoose.model('ChatTest', ChatTestSchema);
-mongoose.connect('mongodb://'+ (process.env.IP || 'localhost') +'/chat_app');
 
-var ChatTest = mongoose.model('ChatTest');
-*/
-db.init();
-var ChatTest = db.mongoose.model('ChatTest');
+var ChatTest = db.ChatTest;
 
 
 // ----------------------------------------------------------------------------
