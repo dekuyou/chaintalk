@@ -1,0 +1,11 @@
+{
+
+  "index": {
+    "send": "Send",
+    "delete": "Delete",
+    "placeholder": "talk over a cup of tea"
+  },
+
+  "end" : "EOF"
+  
+}

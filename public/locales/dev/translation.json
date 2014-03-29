@@ -1,0 +1,20 @@
+{
+  "app": {
+    "name": "chain-talk"
+  },
+  "sample": {
+    "home": "Home",
+    "page1": "Page One",
+    "page2": "Page Two"
+  },
+  
+  "index": {
+    "send": "Send",
+    "delete": "Delete",
+    "placeholder": ""
+  },
+  
+  
+  "end" : "EOF"
+  
+}

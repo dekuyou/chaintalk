@@ -11,6 +11,7 @@ var path        = require('path');
 var sio         = require('socket.io');
 var mongoStore  = require('connect-mongo')(express);
 var connect     = require('express/node_modules/connect');
+var i18next     = require('i18next');
 
 var db          = require('./db/scheme');
 var certify     = require('./routes/certify');
@@ -46,6 +47,7 @@ app.use(express.session({
 }));
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(i18next.handle);
 
 // development only
 if ('development' == app.get('env')) {
@@ -69,7 +71,6 @@ app.post('/certify/auth', certify.loginCheck, certify.auth);
 
 
 // -----------------------------------------------------------------------------
-
 
 var server = http.createServer(app);
 server.listen(app.get('port'), function(){

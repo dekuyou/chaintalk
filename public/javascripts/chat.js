@@ -80,7 +80,7 @@ function writeMsg(data){
     
     setTimeout(function(){
 		$msgObj.fadeOut(countByte(data.message)*100, function(){$(this).remove();});
-	},2000);
+	},1000 + (Math.ceil(countByte(data.message)/10)*1500 )  );
 
 }
 
