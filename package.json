@@ -10,6 +10,7 @@
     "jade": "*",
     "socket.io": "*",
     "mongoose": "*",
-    "connect-mongo": "*"
+    "connect-mongo": "*",
+    "cookie": "*"
   }
 }

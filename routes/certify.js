@@ -70,3 +70,14 @@ exports.debug = function(req, res){
     var pubKey  = req.params.pub_key;
 };
 
+
+/**
+ * Login チェック
+ */
+exports.loginCheck = function(req, res, next) {
+    if(req.session.key){
+      next();
+    }else{
+      res.redirect('/');
+    }
+};

@@ -18,6 +18,7 @@ var db  = mongoose.createConnection(url, function(err, res){
  */
 // ChatTest collection for test -------------------------------------------
 var ChatTestSchema = new mongoose.Schema({
+  id: String,
   message: String,
   date: Date
 });
