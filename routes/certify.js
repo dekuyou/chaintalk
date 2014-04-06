@@ -1,7 +1,10 @@
 /**
  * certify 
  */
- var crypto     = require('crypto');
+ var crypto             = require('crypto');
+ var passport           = require('passport');
+ var facebookStrategy   = require('passport-facebook').Strategy;
+
  var db         = require('../db/scheme');
 
 
@@ -49,6 +52,7 @@ exports.auth = function(req, res){
     var pubKey  = params.pub_key;
     
     // token の有効性を確認
+    
     
     // 存在していたら更新 なければ登録
     
