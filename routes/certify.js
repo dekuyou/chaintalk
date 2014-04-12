@@ -1,11 +1,10 @@
 /**
  * certify 
  */
- var crypto             = require('crypto');
- var passport           = require('passport');
- var facebookStrategy   = require('passport-facebook').Strategy;
+var crypto             = require('crypto');
+var graph = require('fbgraph');
 
- var db         = require('../db/scheme');
+var db         = require('../db/scheme');
 
 
 /**
@@ -46,12 +45,13 @@ exports.auth = function(req, res){
     var params = JSON.parse(decipher.final('utf-8'));   // FIXME utf-8 の必要ある？
 
     // 
-    var id      = params.id;
-    var snsType = params.sns_type;
-    var token   = params.token;
-    var pubKey  = params.pub_key;
+    var id              = params.id;
+    var snsType         = params.sns_type;
+    var access_token    = params.token;
+    var pubKey          = params.pub_key;
     
     // token の有効性を確認
+    graph.setAccessToken(access_token);
     
     
     // 存在していたら更新 なければ登録
