@@ -12,8 +12,6 @@ var sio         = require('socket.io');
 var mongoStore  = require('connect-mongo')(express);
 var connect     = require('express/node_modules/connect');
 var i18next     = require('i18next');
-var passport           = require('passport');
-var FacebookStrategy   = require('passport-facebook').Strategy;
 
 var db          = require('./db/scheme');
 var certify     = require('./routes/certify');
@@ -50,8 +48,6 @@ app.use(express.session({
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(i18next.handle);
-app.use(passport.initialize());
-app.use(passport.session());
 
 
 // development only
@@ -83,32 +79,6 @@ server.listen(app.get('port'), function(){
 });
 
 
-
-// Facebook --------------------------------------------------------------------
-
-//passportのセッションを使うので
-//リアライズ、デシリアライズのための関数を追記。 
-passport.serializeUser(function(user, done){
-  done(null, user);
-});
- 
-passport.deserializeUser(function(obj, done){
-  done(null, obj);
-});
-
-//ここからFacebook認証の記述
-var FACEBOOK_APP_ID = "--insert-facebook-app-id-here--";            // この手のはDBかな。。。
-var FACEBOOK_APP_SECRET = "--insert-facebook-app-secret-here--";    // 
-
-passport.use(new FacebookStrategy({
-    clientID: FACEBOOK_APP_ID,
-    clientSecret: FACEBOOK_APP_SECRET,
-    callbackURL: "http://www.example.com/auth/facebook/callback"
-  },
-  function(accessToken, refreshToken, profile, done) {
-
-  }
-));
 
 
 // ----------------------------------------------------------------------------
