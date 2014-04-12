@@ -40,8 +40,10 @@ var UserSchema = new mongoose.Schema({
   sns_type: Number,     // 1:Facebook, 2:Twitter
   token: String,
   pub_key: String,
+  socket_id: String,
   is_master: Boolean,
-  created_at: Date
+  created_at: Date,
+  updated_at: Date
 });
 module.exports.User = db.model('User', UserSchema);
 

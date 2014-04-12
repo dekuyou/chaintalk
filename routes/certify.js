@@ -1,10 +1,9 @@
 /**
  * certify 
  */
-var crypto             = require('crypto');
-var graph = require('fbgraph');
-
-var db         = require('../db/scheme');
+var crypto  = require('crypto');
+var FB      = require('fb');
+var db      = require('../db/scheme');
 
 
 /**
@@ -51,11 +50,47 @@ exports.auth = function(req, res){
     var pubKey          = params.pub_key;
     
     // token の有効性を確認
-    graph.setAccessToken(access_token);
+    FB.setAccessToken(access_token);
+    FB.getLoginStatus(function(response) {
+        if (response.status === 'connected') {
+            // アプリ認証あり
+            
+            // 存在していたら更新 なければ登録
+            var userRecord = db.User.find({user_id: id });
+            console.log(userRecord);
+            if (userRecord === undefined ) {
+                var user = new db.User();
+                user.user_id = id;
+                user.sns_type = snsType;
+                user.token = access_token;
+                user.pub_key = pubKey;
+                user.is_master = false;
+                user.created_at = new Date();
+                user.save(function(err) {
+                    if (err) { console.log(err); }
+                });
+                
+            } else {
+                db.user.update(
+                    { _id : userRecord._id },
+                    { token : access_token },
+                    { pub_key : pubKey },
+                    { updated_at: new Date() }
+                );
+                
+            }
+            
     
     
-    // 存在していたら更新 なければ登録
-    
+            
+            
+            
+        } else if (response.status === 'not_authorized') {
+            // アプリの認証なし．
+        } else {
+            // 
+        }
+    });
     
     
     

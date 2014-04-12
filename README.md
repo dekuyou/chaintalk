@@ -12,4 +12,4 @@ chaintalk
 > http://nodejs.org/docs/v0.8.26/  
 
 ### facebook
-> https://github.com/criso/fbgraph
+> https://github.com/Thuzi/facebook-node-sdk/
