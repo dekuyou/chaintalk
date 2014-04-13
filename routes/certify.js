@@ -33,6 +33,10 @@ exports.index = function(req, res){
 
 /**
  * auth
+ * <li> user_id
+ * <li> sns_type
+ * <li> token
+ * <li> pub_key
  */
 exports.auth = function(req, res){
     // Sessionから server 認証用 private key を取得
@@ -44,7 +48,7 @@ exports.auth = function(req, res){
     var params = JSON.parse(decipher.final('utf-8'));   // FIXME utf-8 の必要ある？
 
     // 
-    var id              = params.id;
+    var userId          = params.user_id;
     var snsType         = params.sns_type;
     var access_token    = params.token;
     var pubKey          = params.pub_key;
@@ -56,11 +60,11 @@ exports.auth = function(req, res){
             // アプリ認証あり
             
             // 存在していたら更新 なければ登録
-            var userRecord = db.User.find({user_id: id });
+            var userRecord = db.User.find({user_id: userId });
             console.log(userRecord);
             if (userRecord === undefined ) {
                 var user = new db.User();
-                user.user_id = id;
+                user.user_id = userId;
                 user.sns_type = snsType;
                 user.token = access_token;
                 user.pub_key = pubKey;
@@ -80,8 +84,9 @@ exports.auth = function(req, res){
                 
             }
             
-    
-    
+            // session に id を登録
+            req.session.user_id = userId;
+            
             
             
             
@@ -97,6 +102,23 @@ exports.auth = function(req, res){
 };
 
 
+
+/**
+ * Login チェック
+ */
+exports.loginCheck = function(req, res, next) {
+    if(req.session.key || req.session.user_id){
+      next();
+    }else{
+      res.redirect('/');
+    }
+};
+
+
+
+
+// debug -------------------------------------------------------
+
 /**
  * debug 用アクセス
  */
@@ -109,14 +131,3 @@ exports.debug = function(req, res){
     var pubKey  = req.params.pub_key;
 };
 
-
-/**
- * Login チェック
- */
-exports.loginCheck = function(req, res, next) {
-    if(req.session.key){
-      next();
-    }else{
-      res.redirect('/');
-    }
-};

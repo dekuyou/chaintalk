@@ -15,6 +15,7 @@ var i18next     = require('i18next');
 
 var db          = require('./db/scheme');
 var certify     = require('./routes/certify');
+var connect_     = require('./routes/connect');
 
 
 var app = express();
@@ -68,6 +69,7 @@ app.get('/users', user.list);
 app.get('/certify/debug/:id/:sns_type/:token/:pub_key', certify.index);
 app.post('/certify/index', certify.index);
 app.post('/certify/auth', certify.loginCheck, certify.auth);
+app.post('/connect/index', certify.loginCheck, connect_.index);
 
 
 
