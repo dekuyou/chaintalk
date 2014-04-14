@@ -23,9 +23,10 @@ exports.index = function(req, res){
     req.session.key = tmp_server_pri_key;
     
     // public key は Nativeからもらった public key で encrypt して返却
-    var hmac = crypto.createHmac('aes192', tmp_server_pri_key);
+    var hmac = crypto.createHmac('aes192', tmp_pub_key);
     hmac.update(JSON.stringify( { 'key': tmp_server_pub_key } ));
 
+    res.contentType('application/json');
     res.send(JSON.stringify( { 'data': hmac.digest('base64') } ));
 
 };
@@ -42,8 +43,10 @@ exports.auth = function(req, res){
     // Sessionから server 認証用 private key を取得
     var tmp_server_pri_key = req.session.key;
     
+    var data = req.body.data;
+    
     // decrypt して 中から user 情報を取り出す
-    var iv = new Buffer(req.body.data, 'base64');
+    var iv = new Buffer(data, 'base64');
     var decipher = crypto.createCipheriv('aes192', tmp_server_pri_key, iv);
     var params = JSON.parse(decipher.final('utf-8'));   // FIXME utf-8 の必要ある？
 
@@ -52,6 +55,9 @@ exports.auth = function(req, res){
     var snsType         = params.sns_type;
     var access_token    = params.token;
     var pubKey          = params.pub_key;
+    
+    
+    var isAuth = false;
     
     // token の有効性を確認
     FB.setAccessToken(access_token);
@@ -87,7 +93,7 @@ exports.auth = function(req, res){
             // session に id を登録
             req.session.user_id = userId;
             
-            
+            isAuth = true;
             
             
         } else if (response.status === 'not_authorized') {
@@ -97,6 +103,9 @@ exports.auth = function(req, res){
         }
     });
     
+    
+    res.contentType('application/json');
+    res.send(JSON.stringify( { 'auth': isAuth } ));
     
     
 };
