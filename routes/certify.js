@@ -2,9 +2,11 @@
  * certify 
  */
 var crypto  = require('crypto');
+var ursa    = require('ursa');
 var FB      = require('fb');
 var db      = require('../db/scheme');
 
+var encoding = 'base64';
 
 /**
  * init 
@@ -15,19 +17,27 @@ exports.index = function(req, res){
     
     
     // server側の public private key を作成
-    var tmp_server_key = crypto.getDiffieHellman('modp5');  // (defined in RFC 2412)
-    var tmp_server_pub_key = tmp_server_key.generateKeys('hex');
-    var tmp_server_pri_key = tmp_server_key.getPrivateKey('hex');
+    var keys = ursa.generatePrivateKey();
     
+    var privPem = keys.toPrivatePem(encoding);
+    var tmp_server_pri_key = ursa.createPrivateKey(privPem, '', encoding);
+
+    
+    var pubPem = keys.toPublicPem(encoding);
+    var tmp_server_pub_key = ursa.createPublicKey(pubPem, encoding);
+
+
     // private key はSession に保存し、Authで利用
     req.session.key = tmp_server_pri_key;
     
-    // public key は Nativeからもらった public key で encrypt して返却
-    var hmac = crypto.createHmac('aes192', tmp_pub_key);
-    hmac.update(JSON.stringify( { 'key': tmp_server_pub_key } ));
+    // 返却用 Server側 public key 
+    var jsonKey = JSON.stringify( { 'key': tmp_server_pub_key } );
+    var data = new Buffer(jsonKey, 'utf8');
+    var encrypted = tmp_server_pub_key.encrypt(data, encoding);
+
 
     res.contentType('application/json');
-    res.send(JSON.stringify( { 'data': hmac.digest('base64') } ));
+    res.send(JSON.stringify( { 'data': encrypted.toString('utf8') } ));
 
 };
 
@@ -46,9 +56,9 @@ exports.auth = function(req, res){
     var data = req.body.data;
     
     // decrypt して 中から user 情報を取り出す
-    var iv = new Buffer(data, 'base64');
-    var decipher = crypto.createCipheriv('aes192', tmp_server_pri_key, iv);
-    var params = JSON.parse(decipher.final('utf-8'));   // FIXME utf-8 の必要ある？
+    var bData = new Buffer(data, 'base64');
+    var decrypted = tmp_server_pri_key.decrypt(bData, encoding);
+    var params = JSON.parse(decrypted.toString('utf-8'));   
 
     // 
     var userId          = params.user_id;
