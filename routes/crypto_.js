@@ -1,56 +1,65 @@
 var crypto = require('crypto');
+var ursa   = require('ursa');
 
 /**
  * init 
  */
 exports.index = function(req, res){
 
+    // 共通鍵
     var uncipheredText = 'chaintalk';
     var password ='passowrd';
     
 
-    // server側の public private key を作成
-    var tmp_server_key = crypto.getDiffieHellman('modp5');  // (defined in RFC 2412)
-    var tmp_server_pub_key = tmp_server_key.generateKeys('base64')  ;
-    // var tmp_server_pub_key = tmp_server_key.getPublicKey('hex');
-    var tmp_server_pri_key = tmp_server_key.getPrivateKey('base64');
-    
-    console.log(tmp_server_pub_key);
-    console.log(tmp_server_pri_key);
-    
-     var cipertext = _encrypt(uncipheredText, tmp_server_pri_key);
-
-     // verification
-     var result = _verify(uncipheredText, cipertext, tmp_server_pub_key); 
-     if (result === false) {
-       console.log("encryption failed!!!");
-     }
-    
-    // sync
-    // try {
-    //   var buf = crypto.randomBytes(192);
-    //   console.log('Have %d bytes of random data: %s', buf.length, buf);
-    // } catch (ex) {
-    //   // handle error
-    //   // most likely, entropy sources are drained
-    // }
-    // var iv = new Buffer(new Array(16));
-    // var iv = new Buffer(8);
-    // iv.fill(0);
-    // var key = new Buffer( '5B5A57676A56676E', 'hex' );
-
     // 暗号化
-    // var cipher = crypto.createCipher('aes192', password);
-    var cipher = crypto.createCipher('aes-128-cbc', new Buffer(tmp_server_pub_key, 'hex'));
+    var cipher = crypto.createCipher('aes192', password);
     cipher.update(uncipheredText);
     var cipheredText = cipher.final('binary');
     console.log(cipheredText);
 
     
     // 復号
-    var decipher = crypto.createDecipher('aes-128-cbc', new Buffer(tmp_server_pri_key, 'hex'));
+    var decipher = crypto.createDecipher('aes192', password);
     decipher.update(cipheredText);
     console.log(decipher.final('utf8'));
+    
+    
+    // 公開鍵
+    var encoding = 'base64';
+    
+    // private
+    var keys = ursa.generatePrivateKey();
+    
+    var privPem = keys.toPrivatePem(encoding);
+    var priv = ursa.createPrivateKey(privPem, '', encoding);
+    console.log('Private Key:', privPem);
+    
+    // public
+    var pubPem = keys.toPublicPem(encoding);
+    var pub = ursa.createPublicKey(pubPem, encoding);
+    console.log('\nPublic Key:', pubPem);
+    
+    var data = new Buffer(uncipheredText, 'utf8');
+    console.log('\n\nMessage:', uncipheredText);
+    console.log('Data:', data);
+    
+    
+    // Encrypting (with the public key)
+    var encrypted = pub.encrypt(data, encoding);
+    console.log('Encrypted Data: ', encrypted);
+    console.log('Encrypted Message: ', encrypted.toString('utf8'));
+    
+    // Decrypting (with the private key)
+    var decrypted = priv.decrypt(encrypted, encoding);
+    console.log('Decrypted Data: ', decrypted);
+    console.log('Decrypted Message: ', decrypted.toString('utf8'));
+
+    
+    
+    
+    
+    
+    
     
     
     // res.contentType('application/json');
@@ -60,25 +69,4 @@ exports.index = function(req, res){
     
 };
 
-/********************************************************************
-                      IMPLEMENTING FUNCTIONS...
-********************************************************************/
-
-function _encrypt(plaintext, privateKey)
-{
-  var signer = crypto.createSign("RSA-SHA256");
-  signer.update(plaintext);
-  var sign = signer.sign(privateKey, "hex");
-
- return (sign);
-}
-
-function _verify(plaintext, cipertext, publicKey)
-{
-  var verifier = crypto.createVerify("RSA-SHA256");
-  verifier.update(plaintext);
-  var result = verifier.verify(publicKey, cipertext, "hex");
-  
- return (result);
-}
 
