@@ -33,7 +33,8 @@ exports.index = function(req, res){
     // 返却用 Server側 public key 
     var jsonKey = JSON.stringify( { 'key': tmp_server_pub_key } );
     var data = new Buffer(jsonKey, 'utf8');
-    var encrypted = tmp_server_pub_key.encrypt(data, encoding);
+    // Native側 public key で暗号化
+    var encrypted = tmp_pub_key.encrypt(data, encoding);
 
 
     res.contentType('application/json');
