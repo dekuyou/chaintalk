@@ -105,7 +105,7 @@ exports.auth = function(req, res){
     
     
     res.contentType('application/json');
-    res.send(JSON.stringify( { 'auth': isAuth } ));
+    res.send(JSON.stringify( { 'state': isAuth } ));
     
     
 };

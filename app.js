@@ -17,6 +17,9 @@ var db          = require('./db/scheme');
 var certify     = require('./routes/certify');
 var connection  = require('./routes/connection');
 
+// test
+var crypto_  = require('./routes/crypto_');
+
 
 var app = express();
 
@@ -64,6 +67,7 @@ if ('development' == app.get('env')) {
 
 app.get('/', routes.index);
 app.get('/users', user.list);
+app.get('/crypto', crypto_.index);
 
 // -----------------------------------------------------------------------------
 app.get('/certify/debug/:id/:sns_type/:token/:pub_key', certify.index);
