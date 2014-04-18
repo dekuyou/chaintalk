@@ -6,6 +6,7 @@ var ursa   = require('ursa');
  */
 exports.index = function(req, res){
 
+    // ---------------------------------------------
     // 共通鍵
     var uncipheredText = 'chaintalk';
     var password ='passowrd';
@@ -24,6 +25,12 @@ exports.index = function(req, res){
     console.log(decipher.final('utf8'));
     
     
+    
+    
+    
+    
+    
+    // -----------------------------------------------------------------
     // 公開鍵
     var encoding = 'base64';
     

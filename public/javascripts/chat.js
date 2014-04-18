@@ -15,6 +15,7 @@ var socket = io.connect();
 
 
 socket.on('connect', function() {
+    socket.send({ cookie: document.cookie });
     socket.emit('message:update');
 });
 

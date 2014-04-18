@@ -9,9 +9,15 @@ var user        = require('./routes/user');
 var http        = require('http');
 var path        = require('path');
 var sio         = require('socket.io');
-var mongoStore  = require('connect-mongo')(express);
+var MongoStore  = require('connect-mongo')(express);
+var store  = new MongoStore({
+        db: 'session',
+        host: 'localhost',
+        clear_interval: 30 * 60
+    });
 var connect     = require('express/node_modules/connect');
 var i18next     = require('i18next');
+var cookie_      = require('cookie');
 
 var db          = require('./db/scheme');
 var certify     = require('./routes/certify');
@@ -37,13 +43,9 @@ app.use(express.urlencoded());
 app.use(express.methodOverride());
 app.use(express.cookieParser()); 
 app.use(express.session({
-    key : app.get('cookieSessionKey'),
-    secret: 'secret',
-    store: new mongoStore({
-        db: 'session',
-        host: 'localhost',
-        clear_interval: 30 * 60
-    }),
+    key: app.get('cookieSessionKey'),
+    secret: app.get('secretKey'),
+    store: store,
     cookie: {
         httpOnly: false,
         maxAge: new Date(Date.now() + 30 * 60 * 1000)
@@ -96,33 +98,60 @@ var ChatTest = db.ChatTest;
 // ----------------------------------------------------------------------------
 //socket
 var io = sio.listen(server);
-// var parseCookie = require('connect').utils.parseCookie;
-// var parseCookie = express.cookieParser();
+
+
 
 io.configure(function () {
-  io.set('authorization', function (handshakeData, callback) {
-    if(handshakeData.headers.cookie) {
-        
-        //cookieを取得
-        var cookie = require('cookie').parse(decodeURIComponent(handshakeData.headers.cookie));
-        //cookie中の署名済みの値を元に戻す
-        cookie = connect.utils.parseSignedCookies(cookie, app.get('secretKey'));
-        //cookieからexpressのセッションIDを取得する
-        var sessionID = cookie[app.get('cookieSessionKey')];
-        console.log('[authorization]sessionID: ', sessionID);
-        handshakeData.sessionID =  sessionID;
-    } else {
-        return callback('Cookie が見つかりませんでした', false);
-    }
-    // 認証 OK
-    callback(null, true);
-  });
+    io.set('authorization', function (handshakeData, callback) {
+        if(handshakeData.headers.cookie) {
+            
+            //cookieを取得
+            var cookie = cookie_.parse(decodeURIComponent(handshakeData.headers.cookie));
+            cookie = connect.utils.parseSignedCookies(cookie,app.get('secretKey'));
+            var sessionID = cookie[app.get('cookieSessionKey')];
+            handshakeData.sessionID = sessionID;
+    
+            console.log('[authorization]Express   sessionID: ', sessionID);
+            console.log('[authorization]handshakeData : ', handshakeData);
+            
+            store.load(sessionID, function (err, session) {
+                console.log('[authorization]store.get session: ', session);
+                console.log('[authorization]store.get err: ', err);
+                
+                if (err) {
+                    callback(err.message, false);
+                } else {
+                    handshakeData.session = session;
+                }
+            });
+    
+        } else {
+            return callback('Cookie が見つかりませんでした', false);
+        }
+        // 認証 OK
+        callback(null, true);
+    });
 });
 
 io.sockets.on('connection', function (socket) {
- console.log('[connection]sessionID: ', socket.handshake.sessionID);
+    console.log('[connection]sessionID: ', socket.handshake.sessionID + ' connected!');
+    var sessionTuchIntervalID = setInterval(function () {
+        socket.handshake.session.reload( function () { 
+            console.log('[connection]session tuch: ' + socket.handshake.sessionID );
+            socket.handshake.session.touch().save();
+        });
+    }, 60 * 1000);
+  
+  
+  
+    socket.on('disconnect', function() {
+        console.log('[connection]disconnected');
+        clearInterval(sessionTuchIntervalID);
+    });
     
     
+    
+  // test ------------------------------------
   socket.on('message:update', function(){
     //接続したらDBのメッセージを表示
     ChatTest.find(function(err, docs){
@@ -160,9 +189,6 @@ io.sockets.on('connection', function (socket) {
     });
   });
 
-  socket.on('disconnect', function() {
-    console.log('disconnected');
-  });
 
 });
 
