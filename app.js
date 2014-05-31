@@ -15,7 +15,7 @@ var store  = new MongoStore({
         host: 'localhost',
         clear_interval: 30 * 60
     });
-var connect     = require('express/node_modules/connect');
+var connect     = require('connect');
 var i18next     = require('i18next');
 var cookie_      = require('cookie');
 
